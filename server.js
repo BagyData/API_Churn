@@ -21,44 +21,25 @@ db.once('open', () => {
 });
 
 // Defina um esquema e modelo baseado na coleção FullOrders
-const fullOrdersSchema = new mongoose.Schema({
+const ModeloChurnSchema = new mongoose.Schema({
+  _id: Number,
   shop_id: Number,
-  customer_id: Number,
-  user_id: Number,
-  type: String,
-  code: Number,
-  token: String,
-  quantity: Number,
-  total: Number,
-  subtotal: Number,
-  discount: Number,
-  tax: Number,
-  cost: Number,
-  status: String,
-  payment_status: String,
-  fulfillment_status: String,
-  device: String,
-  extra: {
-    utm: String,
-    user_agent: String,
-    customer_ip: String,
-    schedule_delivery: mongoose.Schema.Types.Mixed,
-  },
-  send_email: Boolean,
-  is_subscription: Number,
-  checkout_started_at: Date,
-  created_at: Date,
-  updated_at: Date,
+  'Probabilidade de Cancelamento': Number,
 });
 
-const FullOrder = mongoose.model('FullOrder', fullOrdersSchema, 'Modelo Churn');
+const ModeloChurn = mongoose.model('ModeloChurn', ModeloChurnSchema, 'Modelo Churn');
 
 // Rota para buscar os 20 primeiros itens
 app.get('/api/items', async (req, res) => {
   try {
     console.log('Fetching items from database...');
-    const items = await FullOrder.find().limit(50);
-    console.log('Items fetched:', items);
+    const items = await ModeloChurn.find().limit(50);
+    const formattedItems = items.map(item => ({
+      ...item.toObject(),
+      'Probabilidade de Cancelamento': (item['Probabilidade de Cancelamento'] * 100).toFixed(2) + '%'
+    }));
+    console.log('Items fetched:', formattedItems);
+    res.json(formattedItems);
     res.json(items);
   } catch (error) {
     console.error('Error fetching items:', error);
