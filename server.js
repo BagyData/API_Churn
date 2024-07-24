@@ -27,12 +27,21 @@ const microServicesDb = mongoose.createConnection('mongodb+srv://marcomaciel:Val
 });
 
 const InstagramScrapperSchema = new mongoose.Schema({
-  username: String,
-  user_url: String,
-  register_date: String,
-  is_new_user: Boolean,
-  bio_link: String,
+  username: { type: String, default: '' },
+  user_url: { type: String, default: '' },
+  bio_link: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  followees: { type: Number, default: 0 },
+  followers: { type: Number, default: 0 },
+  has_public_story: { type: Boolean, default: false },
+  is_business_account: { type: Boolean, default: false },
+  is_private: { type: Boolean, default: false },
+  is_verified: { type: Boolean, default: false },
+  media_count: { type: Number, default: 0 },
+  register_date: { type: Date, default: Date.now },
+  is_new_user: { type: Boolean, default: true },
 });
+
 
 const InstagramScrapper = microServicesDb.model('InstagramScrapper', InstagramScrapperSchema, 'InstagramScrapper');
 
