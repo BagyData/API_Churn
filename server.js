@@ -31,6 +31,7 @@ const InstagramScrapperSchema = new mongoose.Schema({
   user_url: String,
   register_date: String,
   is_new_user: Boolean,
+  bio_link: String,
 });
 
 const InstagramScrapper = microServicesDb.model('InstagramScrapper', InstagramScrapperSchema, 'InstagramScrapper');
