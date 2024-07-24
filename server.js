@@ -20,48 +20,56 @@ db.once('open', () => {
   console.log('Connected to MongoDB');
 });
 
-// Defina um esquema e modelo baseado na coleção FullOrders
-const fullOrdersSchema = new mongoose.Schema({
-  shop_id: Number,
-  customer_id: Number,
-  user_id: Number,
-  type: String,
-  code: Number,
-  token: String,
-  quantity: Number,
-  total: Number,
-  subtotal: Number,
-  discount: Number,
-  tax: Number,
-  cost: Number,
-  status: String,
-  payment_status: String,
-  fulfillment_status: String,
-  device: String,
-  extra: {
-    utm: String,
-    user_agent: String,
-    customer_ip: String,
-    schedule_delivery: mongoose.Schema.Types.Mixed,
-  },
-  send_email: Boolean,
-  is_subscription: Number,
-  checkout_started_at: Date,
-  created_at: Date,
-  updated_at: Date,
+// Conexão ao banco de dados MicroServices para a coleção de seguidores
+const microServicesDb = mongoose.createConnection('mongodb+srv://marcomaciel:Valhalla1@cluster0.reumxgk.mongodb.net/MicroServices', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
-const FullOrder = mongoose.model('FullOrder', fullOrdersSchema, 'Modelo Churn');
+const InstagramScrapperSchema = new mongoose.Schema({
+  username: String,
+  user_url: String,
+  register_date: String,
+  is_new_user: Boolean,
+});
 
-// Rota para buscar os 20 primeiros itens
+const InstagramScrapper = microServicesDb.model('InstagramScrapper', InstagramScrapperSchema, 'InstagramScrapper');
+
+// Defina um esquema e modelo baseado na coleção FullOrders
+const ModeloChurnSchema = new mongoose.Schema({
+  _id: Number,
+  shop_id: Number,
+  'Probabilidade de Cancelamento': Number,
+});
+
+const ModeloChurn = mongoose.model('ModeloChurn', ModeloChurnSchema, 'Modelo Churn');
+
+// Rota para buscar os 50 primeiros itens
 app.get('/api/items', async (req, res) => {
   try {
     console.log('Fetching items from database...');
-    const items = await FullOrder.find().limit(50);
-    console.log('Items fetched:', items);
-    res.json(items);
+    const items = await ModeloChurn.find().limit(50);
+    const formattedItems = items.map(item => ({
+      ...item.toObject(),
+      'Probabilidade de Cancelamento': (item['Probabilidade de Cancelamento'] * 100).toFixed(2) + '%'
+    }));
+    console.log('Items fetched:', formattedItems);
+    res.json(formattedItems);
   } catch (error) {
     console.error('Error fetching items:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Rota para buscar seguidores ordenados por register_date de forma descendente
+app.get('/api/seguidores', async (req, res) => {
+  try {
+    console.log('Fetching seguidores from database...');
+    const seguidores = await InstagramScrapper.find().sort({ register_date: -1 });
+    console.log('Seguidores fetched:', seguidores);
+    res.json(seguidores);
+  } catch (error) {
+    console.error('Error fetching seguidores:', error);
     res.status(500).json({ message: error.message });
   }
 });
